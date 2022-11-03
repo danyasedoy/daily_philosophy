@@ -12,7 +12,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Daily Philosophy',
-      theme: ThemeData(),
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        textTheme: const TextTheme(
+          displayLarge: TextStyle(
+            color: Colors.black,
+            fontSize: 30,
+            fontWeight: FontWeight.w300,
+          )
+        )
+      ),
       initialRoute: Navigation.registrationPage,
       routes: Navigation.routes,
     );
