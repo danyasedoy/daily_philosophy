@@ -20,6 +20,7 @@ class PasswordTextFieldWidget extends StatelessWidget {
             fontSize: 22,
           ),
           obscureText: true,
+          textInputAction: TextInputAction.done,
           decoration: const InputDecoration(
             labelText: 'Пароль',
             labelStyle: TextStyle(

@@ -20,7 +20,9 @@ class LoginTextFieldWidget extends StatelessWidget {
             color: Colors.white,
             fontSize: 22,
           ),
+          textInputAction: TextInputAction.next,
           decoration: const InputDecoration(
+            counterText: "",
             labelText: 'Логин',
             labelStyle: TextStyle(
               color: Colors.white,
