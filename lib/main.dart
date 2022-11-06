@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nirs/navigation/navigation.dart';
+import 'package:nirs/themes/themes.dart';
 
 void main() {
   runApp(const MyApp());
@@ -13,15 +14,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Daily Philosophy',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        textTheme: const TextTheme(
-          displayLarge: TextStyle(
-            color: Colors.black,
-            fontSize: 30,
-            fontWeight: FontWeight.w300,
-          )
-        )
-      ),
+      theme: createLightTheme(),
       initialRoute: Navigation.registrationPage,
       routes: Navigation.routes,
     );

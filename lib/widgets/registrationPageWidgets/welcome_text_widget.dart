@@ -14,19 +14,15 @@ class WelcomeTextWidget extends StatelessWidget {
             Text(
               "Добро пожаловать!",
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.displayLarge,
+              style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(
               height: 20,
             ),
-            const Text(
+            Text(
               "Пройдите регистрацию",
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.black87,
-                fontSize: 26,
-                fontWeight: FontWeight.w200,
-              ),
+              style: Theme.of(context).textTheme.titleMedium,
             ),
           ]
       ),

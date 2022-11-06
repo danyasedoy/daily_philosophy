@@ -27,6 +27,7 @@ class RegistrationPageWidget extends StatelessWidget {
             ),
           ]
         ),
+
     );
   }
 }
@@ -43,26 +44,44 @@ class RegistrationTextFieldsWithBackground extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(
-        maxWidth: 400,
-        maxHeight: 400,
-      ),
-      height: MediaQuery.of(context).size.width,
-      decoration: const BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage("assets/images/registration_bg_image.png"),
+    return Stack(
+      alignment: Alignment.bottomCenter,
+      children: [
+        Container(
+          constraints: const BoxConstraints(
+            maxWidth: 400,
+            maxHeight: 400,
+          ),
+          height: MediaQuery.of(context).size.width,
+          foregroundDecoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Theme.of(context).canvasColor,
+                Colors.transparent,
+              ],
+              begin: Alignment.bottomCenter,
+              end: Alignment.topCenter,
+              stops: const [0, 1],
+            ),
+          ),
+          decoration: const BoxDecoration(
+            image: DecorationImage(
+              image: AssetImage("assets/images/registration_bg_image.jpg"),
+            ),
+          ),
         ),
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          LoginTextFieldWidget(loginController: loginController),
-          const SizedBox(height: 20),
-          PasswordTextFieldWidget(passwordController: passwordController),
-          const SizedBox(height: 20),
-        ],
-      ),
+        Container(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              LoginTextFieldWidget(loginController: loginController),
+              const SizedBox(height: 20),
+              PasswordTextFieldWidget(passwordController: passwordController),
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      ]
     );
   }
 }
