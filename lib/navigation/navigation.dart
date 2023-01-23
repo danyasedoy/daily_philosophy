@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:nirs/pages/registrationPage.dart';
+import 'package:nirs/pages/registration_page.dart';
 
 abstract class Navigation {
   static const registrationPage = "/";
