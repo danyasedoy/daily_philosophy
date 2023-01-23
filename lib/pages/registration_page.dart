@@ -1,10 +1,45 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 // Делаем сервис, сущность и провайдеры
 
+class _AuthEntity {
+  final int _id;
+  int get id => _id;
+
+  _AuthEntity(this._id);
+}
+
+class _AuthStorageDataProvider {
+  final _storage = const FlutterSecureStorage();
+
+  Future<_AuthEntity?> getEntity() async {
+    var strId = await _storage.read(key: 'id');
+    if (strId == null) return null;
+    var id = int.tryParse(strId);
+    if (id == null) return null;
+    return _AuthEntity(id);
+  }
+
+  void saveEntity(_AuthEntity entity) async {
+    await _storage.write(key: 'id', value: entity.id.toString());
+  }
+
+  write(String key, String value) async => await _storage.write(key: key, value: value);
+
+  delete(String key) async => await _storage.delete(key: key);
+}
+
 class _AuthService {
+  final _storageDataProvider = _AuthStorageDataProvider();
+
+  Future<_AuthEntity?> findSavedUser() async{
+    // TODO
+    // needs to be changed ! ! !
+    return await _storageDataProvider.getEntity();
+  }
 
 }
 
@@ -33,6 +68,7 @@ class _RegistrationPageState {
 
 class _RegistrationPageViewModel extends ChangeNotifier{
   var state = _RegistrationPageState('', '');
+  var authService = _AuthService();
 
   void loginChanged(String login) {
     state = state.copyWith(login, null);
@@ -48,8 +84,25 @@ class _RegistrationPageViewModel extends ChangeNotifier{
   void onAuthButtonPressed(){}
 }
 
-class RegistrationPageWidget extends StatelessWidget {
+class RegistrationPageWidget extends StatefulWidget {
   const RegistrationPageWidget ({Key? key}) : super(key: key);
+
+  @override
+  State<RegistrationPageWidget> createState() => _RegistrationPageWidgetState();
+}
+
+class _RegistrationPageWidgetState extends State<RegistrationPageWidget> {
+  @override
+  void initState() {
+    final viewModel = _RegistrationPageViewModel();
+    if (viewModel.authService.findSavedUser() != null) {
+      // TODO
+      // описать логику при сценарии, когда
+      // пользователь уже сохранен в кэше
+      // переход на основной экран
+    }
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,6 +131,7 @@ class _RegistrationTextFieldsWithBackground extends StatelessWidget {
   const _RegistrationTextFieldsWithBackground({
     Key? key
   }) : super(key: key);
+
 
   @override
   Widget build(BuildContext context) {
