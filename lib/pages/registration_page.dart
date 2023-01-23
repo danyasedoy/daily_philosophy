@@ -1,34 +1,44 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 
 class _RegistrationPageState {
   final String _login;
-  get login => _login;
+  String get login => _login;
 
   final String _password;
-  get password => _password;
+  String get password => _password;
 
-  final bool _regButtonEnable;
+  bool get isRegButtonEnable => login.isNotEmpty && password.isNotEmpty ? true : false;
 
-  _RegistrationPageState(this._login, this._password, this._regButtonEnable);
+  _RegistrationPageState(this._login, this._password);
 
   _RegistrationPageState copyWith(
       String? login,
-      String? password,
-      bool? regButtonEnable
+      String? password
       )
   {
     return _RegistrationPageState(
         login ?? _login,
-        password ?? _password,
-        regButtonEnable ?? _regButtonEnable
+        password ?? _password
     );
   }
 }
 
-class _RegistrationPageViewModel {
-  var state = _RegistrationPageState('', '', false);
+class _RegistrationPageViewModel extends ChangeNotifier{
+  var state = _RegistrationPageState('', '');
 
+  void loginChanged(String login) {
+    state = state.copyWith(login, null);
+    notifyListeners();
+  }
 
+  void passwordChanged(String password) {
+    state = state.copyWith(null, password);
+    notifyListeners();
+  }
+
+  void onRegButtonPressed(){}
+  void onAlreadyHaveAccPressed(){}
 }
 
 class RegistrationPageWidget extends StatelessWidget {
@@ -36,20 +46,23 @@ class RegistrationPageWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        body : ListView(
-          physics: const BouncingScrollPhysics(),
-          children: [
-            Column(
-              children: const [
-                _WelcomeTextWidget(),
-                _RegistrationTextFieldsWithBackground(),
-                _RegistrationButton(),
-                _AlreadyHaveAccountButton(),
-              ],
-            ),
-          ],
-        ),
+    return ChangeNotifierProvider(
+      create: (_) => _RegistrationPageViewModel(),
+      child: Scaffold(
+          body : ListView(
+            physics: const BouncingScrollPhysics(),
+            children: [
+              Column(
+                children: const [
+                  _WelcomeTextWidget(),
+                  _RegistrationTextFieldsWithBackground(),
+                  _RegistrationButton(),
+                  _AlreadyHaveAccountButton(),
+                ],
+              ),
+            ],
+          ),
+      ),
     );
   }
 }
@@ -120,16 +133,19 @@ class _LoginTextFieldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    var viewModel = context.read<_RegistrationPageViewModel>();
+
+    return Center(
       child: SizedBox(
         width: 300,
         child: TextField(
-          style:  TextStyle(
+          onChanged: viewModel.loginChanged,
+          style:  const TextStyle(
             color: Colors.white,
             fontSize: 22,
           ),
           textInputAction: TextInputAction.next,
-          decoration:  InputDecoration(
+          decoration:  const InputDecoration(
             counterText: "",
             labelText: 'Логин',
             labelStyle: TextStyle(
@@ -154,17 +170,20 @@ class _PasswordTextFieldWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    var viewModel = context.read<_RegistrationPageViewModel>();
+
+    return Center(
       child: SizedBox(
         width: 300,
         child: TextField(
-          style:  TextStyle(
+          onChanged: viewModel.passwordChanged,
+          style:  const TextStyle(
             color: Colors.white,
             fontSize: 22,
           ),
           obscureText: true,
           textInputAction: TextInputAction.done,
-          decoration:  InputDecoration(
+          decoration:  const InputDecoration(
             labelText: 'Пароль',
             labelStyle: TextStyle(
               color: Colors.white,
@@ -188,12 +207,15 @@ class _RegistrationButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var isEnable = context.select((_RegistrationPageViewModel viewModel) => viewModel.state.isRegButtonEnable);
+    var viewModel = context.read<_RegistrationPageViewModel>();
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Container(
         constraints: const BoxConstraints.tightFor(width: 300, height: 50),
         child: ElevatedButton(
-          onPressed: (){},
+          onPressed: isEnable ? viewModel.onRegButtonPressed : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.yellow,
           ),
@@ -216,12 +238,14 @@ class _AlreadyHaveAccountButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var viewModel = context.read<_RegistrationPageViewModel>();
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Container(
         constraints: const BoxConstraints.tightFor(width: 300, height: 50),
         child: ElevatedButton(
-          onPressed: (){},
+          onPressed: viewModel.onAlreadyHaveAccPressed,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.amber,
           ),
