@@ -1,5 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+
+// Делаем сервис, сущность и провайдеры
+
+class _AuthService {
+
+}
 
 class _RegistrationPageState {
   final String _login;
@@ -8,7 +15,7 @@ class _RegistrationPageState {
   final String _password;
   String get password => _password;
 
-  bool get isRegButtonEnable => login.isNotEmpty && password.isNotEmpty ? true : false;
+  bool get isRegButtonEnable => login.isNotEmpty && password.length >= 8 ? true : false;
 
   _RegistrationPageState(this._login, this._password);
 
@@ -38,7 +45,7 @@ class _RegistrationPageViewModel extends ChangeNotifier{
   }
 
   void onRegButtonPressed(){}
-  void onAlreadyHaveAccPressed(){}
+  void onAuthButtonPressed(){}
 }
 
 class RegistrationPageWidget extends StatelessWidget {
@@ -57,7 +64,7 @@ class RegistrationPageWidget extends StatelessWidget {
                   _WelcomeTextWidget(),
                   _RegistrationTextFieldsWithBackground(),
                   _RegistrationButton(),
-                  _AlreadyHaveAccountButton(),
+                  _AuthButton(),
                 ],
               ),
             ],
@@ -139,7 +146,11 @@ class _LoginTextFieldWidget extends StatelessWidget {
       child: SizedBox(
         width: 300,
         child: TextField(
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.allow(RegExp("[0-9a-zA-Z]")),
+          ],
           onChanged: viewModel.loginChanged,
+          maxLength: 20,
           style:  const TextStyle(
             color: Colors.white,
             fontSize: 22,
@@ -176,6 +187,10 @@ class _PasswordTextFieldWidget extends StatelessWidget {
       child: SizedBox(
         width: 300,
         child: TextField(
+          inputFormatters: <TextInputFormatter>[
+            FilteringTextInputFormatter.allow(RegExp("[0-9a-zA-Z]")),
+          ],
+          maxLength: 20,
           onChanged: viewModel.passwordChanged,
           style:  const TextStyle(
             color: Colors.white,
@@ -184,6 +199,7 @@ class _PasswordTextFieldWidget extends StatelessWidget {
           obscureText: true,
           textInputAction: TextInputAction.done,
           decoration:  const InputDecoration(
+            counterText: "",
             labelText: 'Пароль',
             labelStyle: TextStyle(
               color: Colors.white,
@@ -231,13 +247,14 @@ class _RegistrationButton extends StatelessWidget {
   }
 }
 
-class _AlreadyHaveAccountButton extends StatelessWidget {
-  const _AlreadyHaveAccountButton({
+class _AuthButton extends StatelessWidget {
+  const _AuthButton({
     Key? key,
   }) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    var isEnable = context.select((_RegistrationPageViewModel viewModel) => viewModel.state.isRegButtonEnable);
     var viewModel = context.read<_RegistrationPageViewModel>();
 
     return Padding(
@@ -245,12 +262,12 @@ class _AlreadyHaveAccountButton extends StatelessWidget {
       child: Container(
         constraints: const BoxConstraints.tightFor(width: 300, height: 50),
         child: ElevatedButton(
-          onPressed: viewModel.onAlreadyHaveAccPressed,
+          onPressed: isEnable ? viewModel.onAuthButtonPressed : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.amber,
           ),
           child: const Text(
-            "Уже есть аккаунт",
+            "Войти",
             style: TextStyle(
               fontSize: 20,
             ),
@@ -281,7 +298,7 @@ class _WelcomeTextWidget extends StatelessWidget {
               height: 20,
             ),
             Text(
-              "Пройдите регистрацию",
+              "Пожалуйста, авторизуйтесь",
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.titleMedium,
             ),
