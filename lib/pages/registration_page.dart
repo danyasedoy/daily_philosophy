@@ -23,22 +23,46 @@ class _AuthStorageDataProvider {
     return _AuthEntity(id);
   }
 
-  void saveEntity(_AuthEntity entity) async {
+  Future<void> saveEntity(_AuthEntity entity) async {
     await _storage.write(key: 'id', value: entity.id.toString());
   }
 
   write(String key, String value) async => await _storage.write(key: key, value: value);
-
   delete(String key) async => await _storage.delete(key: key);
+}
+
+class _AuthApiProvider {
+  Future<String?> auth(String login, String password) async {
+    if (login.isEmpty || password.isEmpty) return null;
+    // fake logic for test
+    // TODO
+    if (login == 'admin' && password == 'admin123') {
+      await Future.delayed(const Duration(seconds: 3));
+      return '123';
+    }
+    return null;
+  }
 }
 
 class _AuthService {
   final _storageDataProvider = _AuthStorageDataProvider();
+  final _apiProvider = _AuthApiProvider();
 
   Future<_AuthEntity?> findSavedUser() async{
     // TODO
     // needs to be changed ! ! !
     return await _storageDataProvider.getEntity();
+  }
+
+  Future<_AuthEntity?> auth(String login, String password) async{
+    String? apiResponse = await _apiProvider.auth(login, password);
+    if (apiResponse == null) {
+      throw 'Некорректные данные';
+    }
+
+    final entity = _AuthEntity(int.parse(apiResponse));
+    await _storageDataProvider.saveEntity(entity);
+    return entity;
   }
 
 }
@@ -51,6 +75,8 @@ class _RegistrationPageState {
   String get password => _password;
 
   bool get isRegButtonEnable => login.isNotEmpty && password.length >= 8 ? true : false;
+
+  String errorMessage = '';
 
   _RegistrationPageState(this._login, this._password);
 
@@ -67,6 +93,9 @@ class _RegistrationPageState {
 }
 
 class _RegistrationPageViewModel extends ChangeNotifier{
+  final BuildContext context;
+  _RegistrationPageViewModel(this.context);
+
   var state = _RegistrationPageState('', '');
   var authService = _AuthService();
 
@@ -81,7 +110,24 @@ class _RegistrationPageViewModel extends ChangeNotifier{
   }
 
   void onRegButtonPressed(){}
-  void onAuthButtonPressed(){}
+  void onAuthButtonPressed() async{
+    try {
+      var entity = await authService.auth(state.login, state.password);
+      if (entity == null) {
+        state.errorMessage = 'Неизвестная ошибка';
+        notifyListeners();
+        return;
+      }
+      if (await authService.findSavedUser() != null) {
+        Navigator.of(context).pushNamed('/main');
+        notifyListeners();
+      }
+    }
+    catch (errorMessage) {
+      state.errorMessage = errorMessage.toString();
+      notifyListeners();
+    }
+  }
 }
 
 class RegistrationPageWidget extends StatefulWidget {
@@ -94,20 +140,25 @@ class RegistrationPageWidget extends StatefulWidget {
 class _RegistrationPageWidgetState extends State<RegistrationPageWidget> {
   @override
   void initState() {
-    final viewModel = _RegistrationPageViewModel();
-    if (viewModel.authService.findSavedUser() != null) {
+    _checkForSavedUser();
+    super.initState();
+  }
+
+  _checkForSavedUser() async {
+    final viewModel = _RegistrationPageViewModel(context);
+    if (await viewModel.authService.findSavedUser() != null) {
       // TODO
       // описать логику при сценарии, когда
       // пользователь уже сохранен в кэше
       // переход на основной экран
+      Navigator.of(context).pushNamed('/main');
     }
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => _RegistrationPageViewModel(),
+      create: (_) => _RegistrationPageViewModel(context),
       child: Scaffold(
           body : ListView(
             physics: const BouncingScrollPhysics(),
@@ -195,6 +246,7 @@ class _LoginTextFieldWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var viewModel = context.read<_RegistrationPageViewModel>();
+    String errorText = context.select((_RegistrationPageViewModel model) => model.state.errorMessage);
 
     return Center(
       child: SizedBox(
@@ -210,17 +262,25 @@ class _LoginTextFieldWidget extends StatelessWidget {
             fontSize: 22,
           ),
           textInputAction: TextInputAction.next,
-          decoration:  const InputDecoration(
-            counterText: "",
+          decoration:  InputDecoration(
+            errorText: errorText.isEmpty ? null : errorText,
+            counterText: '',
             labelText: 'Логин',
-            labelStyle: TextStyle(
+            labelStyle: const TextStyle(
               color: Colors.white,
               fontSize: 22,
+            ),
+            errorStyle: const TextStyle(
+              color: Colors.red,
+              fontSize: 22,
+              fontWeight: FontWeight.w600,
             ),
             fillColor: Colors.black45,
             filled: true,
             enabledBorder: _RegPageTextFieldBorder.border,
             focusedBorder: _RegPageTextFieldBorder.border,
+            errorBorder: _RegPageTextFieldBorder.border,
+            focusedErrorBorder: _RegPageTextFieldBorder.border,
           ),
         ),
       ),

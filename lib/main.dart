@@ -11,11 +11,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var initRoute = Navigation.registrationPage;
+
     return MaterialApp(
       title: 'Daily Philosophy',
       debugShowCheckedModeBanner: false,
       theme: createLightTheme(),
-      initialRoute: Navigation.registrationPage,
+      initialRoute: initRoute,
       routes: Navigation.routes,
     );
   }
