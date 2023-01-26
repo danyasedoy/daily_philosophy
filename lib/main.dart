@@ -16,7 +16,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Daily Philosophy',
       debugShowCheckedModeBanner: false,
-      theme: createLightTheme(),
+      theme: createDarkTheme(),
       initialRoute: initRoute,
       routes: Navigation.routes,
     );
