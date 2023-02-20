@@ -5,6 +5,7 @@ ThemeData createLightTheme() {
     brightness: Brightness.light,
     scaffoldBackgroundColor: Colors.white,
     canvasColor: Colors.white,
+    focusColor: Colors.black,
     textTheme: const TextTheme(
       titleMedium: TextStyle(
         color: Colors.black,
@@ -20,6 +21,7 @@ ThemeData createDarkTheme() {
   return ThemeData(
     brightness: Brightness.dark,
     scaffoldBackgroundColor: Colors.black,
+    focusColor: Colors.white,
     canvasColor: Colors.black,
     textTheme: const TextTheme(
       titleMedium: TextStyle(
