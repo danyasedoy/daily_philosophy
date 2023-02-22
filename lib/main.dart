@@ -4,17 +4,35 @@ import 'package:nirs/themes/themes.dart';
 
 
 
-// сделать myapp stateful виджетом, который будет реагировать на изменение
-// темы и вызывать set state при изменении
-ThemeData theme = createDarkTheme();
-
 void main() {
   runApp(const MyApp());
 
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => MyAppState();
+
+}
+
+class MyAppState extends State<MyApp> {
+
+  ThemeData theme = createDarkTheme();
+
+  void changeThemeData() {
+    if (theme == createDarkTheme()) {
+      theme = createLightTheme();
+      setState(() {
+      });
+    }
+    else {
+      theme = createDarkTheme();
+      setState(() {
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {

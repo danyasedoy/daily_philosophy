@@ -51,7 +51,7 @@ class SettingsTabWidget extends StatelessWidget {
                         ),
                       ),
                     ElevatedButton(
-                      onPressed: null,
+                      onPressed: context.findAncestorStateOfType<MyAppState>()!.changeThemeData,
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all(Theme.of(context).focusColor),
                       ),
