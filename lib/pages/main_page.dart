@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nirs/pages/mainpagetabs/testtab.dart';
 import 'mainpagetabs/settingstab.dart';
 import 'mainpagetabs/maintab.dart';
 
@@ -14,8 +15,17 @@ class _MainPageWidgetState extends State<MainPageWidget> {
   int _selectedTab = 1;
 
   final List _tabs = const [
+    // как сделать вкладку с избранным
+    // по верстке - колумн со списком
+    // по нажатию на пост -
+    // агрумент с айди поста
+    // передается виджету главной вкладки
+    // и на ней отображается пост
+    // если никакого айди не передается виджету главной вкладки
+    // то открывается пост дня
     Center(child: Text('Избранное')),
     MainTabWidget(),
+    TestTabWidget(),
     SettingsTabWidget(),
   ];
 
@@ -42,6 +52,7 @@ class _MainPageWidgetState extends State<MainPageWidget> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.favorite), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.home), label: ''),
+          BottomNavigationBarItem(icon: Icon(Icons.poll), label: ''),
           BottomNavigationBarItem(icon: Icon(Icons.settings), label: ''),
         ],
       ),
