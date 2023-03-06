@@ -1,13 +1,17 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:nirs/settings/settings.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:http/http.dart' as http;
 
 // Делаем сервис, сущность и провайдеры
 
 class _AuthEntity {
-  final int _id;
-  int get id => _id;
+  final String _id;
+  String get id => _id;
 
   _AuthEntity(this._id);
 }
@@ -16,15 +20,13 @@ class _AuthStorageDataProvider {
   final _storage = const FlutterSecureStorage();
 
   Future<_AuthEntity?> getEntity() async {
-    var strId = await _storage.read(key: 'id');
-    if (strId == null) return null;
-    var id = int.tryParse(strId);
+    var id = await _storage.read(key: 'id');
     if (id == null) return null;
     return _AuthEntity(id);
   }
 
   Future<void> saveEntity(_AuthEntity entity) async {
-    await _storage.write(key: 'id', value: entity.id.toString());
+    await _storage.write(key: 'id', value: entity.id);
   }
 
   write(String key, String value) async => await _storage.write(key: key, value: value);
@@ -34,13 +36,41 @@ class _AuthStorageDataProvider {
 class _AuthApiProvider {
   Future<String?> auth(String login, String password) async {
     if (login.isEmpty || password.isEmpty) return null;
-    // fake logic for test
-    // TODO
-    if (login == 'admin' && password == 'admin123') {
-      await Future.delayed(const Duration(seconds: 3));
-      return '123';
+    var response = await http.post(
+      Uri.parse(Settings.authQueryLink),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        "login": login,
+        "password": password
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      return null;
+    } else {
+      return response.body;
     }
-    return null;
+  }
+
+  Future<String?> register(String login, String password) async {
+    if (login.isEmpty || password.isEmpty) return null;
+    var response = await http.post(
+      Uri.parse(Settings.registerQueryLink),
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+      },
+      body: jsonEncode(<String, String>{
+        "login": login,
+        "password": password
+      }),
+    );
+    if (response.statusCode != 200) {
+      return null;
+    } else {
+      return '1';
+    }
   }
 }
 
@@ -59,8 +89,17 @@ class _AuthService {
     if (apiResponse == null) {
       throw 'Некорректные данные';
     }
+    final entity = _AuthEntity(apiResponse);
+    await _storageDataProvider.saveEntity(entity);
+    return entity;
+  }
 
-    final entity = _AuthEntity(int.parse(apiResponse));
+  Future<_AuthEntity?> register(String login, String password) async{
+    String? apiResponse = await _apiProvider.register(login, password);
+    if (apiResponse == null) {
+      throw 'Произошла ошибка';
+    }
+    final entity = _AuthEntity(apiResponse);
     await _storageDataProvider.saveEntity(entity);
     return entity;
   }
@@ -109,7 +148,23 @@ class _RegistrationPageViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
-  void onRegButtonPressed(){}
+  void onRegButtonPressed() async{
+    try {
+      var entity = await authService.register(state.login, state.password);
+      if (entity == null) {
+        state.errorMessage = 'Неизвестная ошибка';
+        notifyListeners();
+        return;
+      }
+      state.errorMessage = 'Необходима авторизация';
+      notifyListeners();
+    }
+    catch (errorMessage) {
+      state.errorMessage = errorMessage.toString();
+      notifyListeners();
+    }
+  }
+
   void onAuthButtonPressed() async{
     try {
       var entity = await authService.auth(state.login, state.password);
@@ -140,7 +195,7 @@ class RegistrationPageWidget extends StatefulWidget {
 class _RegistrationPageWidgetState extends State<RegistrationPageWidget> {
   @override
   void initState() {
-    _checkForSavedUser();
+    //_checkForSavedUser();
     super.initState();
   }
 
