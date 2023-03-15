@@ -53,6 +53,16 @@ class _MainTabApiProvider{
     );
     return response;
   }
+
+  Future<dynamic> deleteArticleFromFavResponse(String articleId, String id) async {
+    var response = await http.post(
+        Uri.parse(Settings.deleteArticleFromFavLink + articleId),
+        headers: <String, String>{
+          'Authorization': 'Bearer $id'
+        }
+    );
+    return response;
+  }
 }
 
 class _MainTabService {
@@ -84,7 +94,17 @@ class _MainTabService {
     if (currentArticle == null) return null;
     if (currentArticle.isLiked) return null;
     await _apiProvider.likeArticleResponse(currentArticle.articleId, id);
-    return loadArticle();
+    return await loadArticle();
+  }
+
+  Future<_ArticleEntity?> deleteArticleFromFav() async {
+    String? id = await _storageProvider.getId();
+    if (id == null) return null;
+    var currentArticle = await loadArticle();
+    if (currentArticle == null) return null;
+    if (currentArticle.isLiked == false) return null;
+    await _apiProvider.deleteArticleFromFavResponse(currentArticle.articleId, id);
+    return await loadArticle();
   }
 }
 
@@ -95,10 +115,10 @@ class _MainTabState {
   final String _articleContent;
   String get articleContent => _articleContent;
 
-  final bool _isAddButtonEnable;
-  bool get isAddButtonEnable => _isAddButtonEnable;
+  final bool _isLiked;
+  bool get isLiked => _isLiked;
 
-  _MainTabState(this._articleTitle, this._articleContent, this._isAddButtonEnable);
+  _MainTabState(this._articleTitle, this._articleContent, this._isLiked);
 
   _MainTabState copyWith(
       String? articleTitle,
@@ -109,7 +129,7 @@ class _MainTabState {
     return _MainTabState(
         articleTitle ?? _articleTitle,
         articleContent ?? _articleContent,
-        isAddButtonEnable ?? _isAddButtonEnable
+        isAddButtonEnable ?? _isLiked
     );
   }
 
@@ -130,14 +150,21 @@ class _MainTabViewModel extends ChangeNotifier{
       notifyListeners();
       return;
     }
-    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, !articleEntity.isLiked);
+    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked);
     notifyListeners();
   }
 
   onAddToFavoriteButtonPressed() async{
     var articleEntity = await service.likeArticle();
     if (articleEntity == null) return;
-    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, !articleEntity.isLiked);
+    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked);
+    notifyListeners();
+  }
+
+  onDeleteFromFavoriteButtonPressed() async{
+    var articleEntity = await service.deleteArticleFromFav();
+    if (articleEntity == null) return;
+    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked);
     notifyListeners();
   }
 
@@ -220,7 +247,7 @@ class _MainTabAddToFavButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var isEnable = context.select((_MainTabViewModel viewModel) => viewModel.state.isAddButtonEnable);
+    var isLiked = context.select((_MainTabViewModel viewModel) => viewModel.state.isLiked);
     var viewModel = context.read<_MainTabViewModel>();
 
     return Padding(
@@ -228,9 +255,9 @@ class _MainTabAddToFavButtonWidget extends StatelessWidget {
       child: MaterialButton(
         color: Colors.orangeAccent,
         minWidth: 100,
-        onPressed: isEnable ? viewModel.onAddToFavoriteButtonPressed : null,
+        onPressed: isLiked ? viewModel.onDeleteFromFavoriteButtonPressed : viewModel.onAddToFavoriteButtonPressed,
         child: Text(
-          isEnable ? 'Добавить в избранное' : 'В избранном',
+          isLiked ? 'Удалить из избранного' : 'Добавить в избранное',
           style: const TextStyle(
             fontSize: 16,
             fontFamily: 'MontserratAlternates',
