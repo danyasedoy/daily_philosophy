@@ -7,13 +7,17 @@ import 'package:nirs/settings/settings.dart';
 import 'package:provider/provider.dart';
 
 class _ArticleEntity{
+  final String _articleId;
   final String _articleTitle;
   final String _articleContent;
+  final bool _isLiked;
 
-  get articleTitle => _articleTitle;
-  get articleContent => _articleContent;
+  String get articleId => _articleId;
+  String get articleTitle => _articleTitle;
+  String get articleContent => _articleContent;
+  bool get isLiked => _isLiked;
 
-  _ArticleEntity(this._articleTitle, this._articleContent);
+  _ArticleEntity(this._articleTitle, this._articleContent, this._isLiked, this._articleId);
 }
 
 class _MainTabStorageProvider{
@@ -39,6 +43,16 @@ class _MainTabApiProvider{
     );
     return response;
   }
+  
+  Future<dynamic> likeArticleResponse(String articleId, String id) async {
+    var response = await http.post(
+        Uri.parse(Settings.likeArticleLink + articleId),
+        headers: <String, String>{
+          'Authorization': 'Bearer $id'
+        }
+    );
+    return response;
+  }
 }
 
 class _MainTabService {
@@ -50,14 +64,27 @@ class _MainTabService {
     if (id != null) {
       var response = await _apiProvider.getArticleResponse(id);
       Map<String, dynamic> responseDecode = jsonDecode(utf8.decode(response.codeUnits));
-      String articleTitle = responseDecode['name'];
-      String articleContent = responseDecode['content'];
+      Map<String, dynamic> articleResponse = responseDecode['article'];
+      String articleId = articleResponse['id'].toString();
+      String articleTitle = articleResponse['name'];
+      String articleContent = articleResponse['content'];
+      bool isLiked = responseDecode['isLiked'].toString().toLowerCase() == 'true';
 
       if (articleTitle.isNotEmpty && articleContent.isNotEmpty) {
-        return _ArticleEntity(articleTitle, articleContent);
+        return _ArticleEntity(articleTitle, articleContent, isLiked, articleId);
       }
     }
     return null;
+  }
+
+  Future<_ArticleEntity?> likeArticle() async {
+    String? id = await _storageProvider.getId();
+    if (id == null) return null;
+    var currentArticle = await loadArticle();
+    if (currentArticle == null) return null;
+    if (currentArticle.isLiked) return null;
+    await _apiProvider.likeArticleResponse(currentArticle.articleId, id);
+    return loadArticle();
   }
 }
 
@@ -68,27 +95,28 @@ class _MainTabState {
   final String _articleContent;
   String get articleContent => _articleContent;
 
-  //TODO
-  // метод для определения добавлена статья или нет
-  bool isAddButtonEnable() => false;
+  final bool _isAddButtonEnable;
+  bool get isAddButtonEnable => _isAddButtonEnable;
 
-  _MainTabState(this._articleTitle, this._articleContent);
+  _MainTabState(this._articleTitle, this._articleContent, this._isAddButtonEnable);
 
   _MainTabState copyWith(
       String? articleTitle,
-      String? articleContent
+      String? articleContent,
+      bool? isAddButtonEnable
       )
   {
     return _MainTabState(
         articleTitle ?? _articleTitle,
-        articleContent ?? _articleContent
+        articleContent ?? _articleContent,
+        isAddButtonEnable ?? _isAddButtonEnable
     );
   }
 
 }
 
 class _MainTabViewModel extends ChangeNotifier{
-  var state = _MainTabState('_articleTitle', '_articleContent');
+  var state = _MainTabState('_articleTitle', '_articleContent', false);
   var service = _MainTabService();
 
   _MainTabViewModel(){
@@ -98,16 +126,19 @@ class _MainTabViewModel extends ChangeNotifier{
   setArticle() async{
     var articleEntity = await service.loadArticle();
     if (articleEntity == null) {
-      state = state.copyWith('Произошла ошибка загрузки', 'Нам очень жаль :( ');
+      state = state.copyWith('Произошла ошибка загрузки', 'Нам очень жаль :( ', false);
       notifyListeners();
       return;
     }
-    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent);
+    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, !articleEntity.isLiked);
     notifyListeners();
   }
 
-  onAddToFavoriteButtonPressed() {
-    //TODO
+  onAddToFavoriteButtonPressed() async{
+    var articleEntity = await service.likeArticle();
+    if (articleEntity == null) return;
+    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, !articleEntity.isLiked);
+    notifyListeners();
   }
 
 }
@@ -189,7 +220,7 @@ class _MainTabAddToFavButtonWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    var isEnable = context.select((_MainTabViewModel viewModel) => viewModel.state.isAddButtonEnable());
+    var isEnable = context.select((_MainTabViewModel viewModel) => viewModel.state.isAddButtonEnable);
     var viewModel = context.read<_MainTabViewModel>();
 
     return Padding(
@@ -198,9 +229,9 @@ class _MainTabAddToFavButtonWidget extends StatelessWidget {
         color: Colors.orangeAccent,
         minWidth: 100,
         onPressed: isEnable ? viewModel.onAddToFavoriteButtonPressed : null,
-        child: const Text(
-          'Добавить в избранное',
-          style: TextStyle(
+        child: Text(
+          isEnable ? 'Добавить в избранное' : 'В избранном',
+          style: const TextStyle(
             fontSize: 16,
             fontFamily: 'MontserratAlternates',
             fontWeight: FontWeight.bold,
