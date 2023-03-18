@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nirs/pages/mainpagetabs/favlisttab.dart';
 import 'package:nirs/pages/mainpagetabs/testtab.dart';
 import 'mainpagetabs/settingstab.dart';
 import 'mainpagetabs/maintab.dart';
@@ -23,7 +24,7 @@ class _MainPageWidgetState extends State<MainPageWidget> {
     // и на ней отображается пост
     // если никакого айди не передается виджету главной вкладки
     // то открывается пост дня
-    Center(child: Text('Избранное')),
+    FavoriteListTabWidget(),
     MainTabWidget(),
     TestTabWidget(),
     SettingsTabWidget(),
