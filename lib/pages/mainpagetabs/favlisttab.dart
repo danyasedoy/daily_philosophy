@@ -236,7 +236,7 @@ class FavArticlesListWidget extends StatelessWidget {
         return Container(
           color: Colors.orangeAccent,
           padding: const EdgeInsets.all(20),
-          margin: const EdgeInsets.symmetric(horizontal: 20),
+          margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [

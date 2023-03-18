@@ -1,8 +1,10 @@
 abstract class Settings {
-  static String registerQueryLink = 'http://10.0.2.2:8080/register';
-  static String authQueryLink = 'http://10.0.2.2:8080/auth';
-  static String articleOfTheDayLink = 'http://10.0.2.2:8080/article_day';
-  static String likeArticleLink = 'http://10.0.2.2:8080/like/';
-  static String deleteArticleFromFavLink = 'http://10.0.2.2:8080/remove_like/';
-  static String favArticlesListLink='http://10.0.2.2:8080/get_likes';
+  //10.0.2.2:8080
+  static const String _ipAddress = '10.0.2.2:8080';
+  static String registerQueryLink = 'http://$_ipAddress/register';
+  static String authQueryLink = 'http://$_ipAddress/auth';
+  static String articleOfTheDayLink = 'http://$_ipAddress/article_day';
+  static String likeArticleLink = 'http://$_ipAddress/like/';
+  static String deleteArticleFromFavLink = 'http://$_ipAddress/remove_like/';
+  static String favArticlesListLink='http://$_ipAddress/get_likes';
 }
