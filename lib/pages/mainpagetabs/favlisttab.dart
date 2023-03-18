@@ -52,6 +52,15 @@ class _FavoriteListApiProvider{
     );
     return response;
   }
+  Future<dynamic> deleteArticleFromFavResponse(String articleId, String id) async {
+    var response = await http.post(
+        Uri.parse(Settings.deleteArticleFromFavLink + articleId),
+        headers: <String, String>{
+          'Authorization': 'Bearer $id'
+        }
+    );
+    return response;
+  }
 }
 
 class _FavoriteListService{
@@ -68,6 +77,12 @@ class _FavoriteListService{
       articlesList.add(_ArticleEntity(article['id'].toString(), article['name'], article['content'], true));
     }
     return articlesList;
+  }
+
+  Future<void> deleteArticleFromFavList(String articleId) async{
+    String? id = await _storageProvider.getId();
+    if (id == null) return;
+    await _apiProvider.deleteArticleFromFavResponse(articleId, id);
   }
 }
 
@@ -107,6 +122,42 @@ class _FavoriteListViewModel extends ChangeNotifier{
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => _FavoriteArticleWidget(article: article)),
+    );
+  }
+
+  onTapDeleteArticle(int index) async {
+    // set up the buttons
+    MaterialButton cancelButton = MaterialButton(
+      child: const Text("Отмена"),
+      onPressed:  () {
+        Navigator.of(context).pop();
+      },
+    );
+    MaterialButton continueButton = MaterialButton(
+      child: const Text("Удалить"),
+      onPressed:  () async{
+        // удаление
+        var article = state.favArticles![index];
+        await service.deleteArticleFromFavList(article.articleId);
+        await getFavArticlesList();
+        Navigator.of(context).pop();
+      },
+    );
+    // set up the AlertDialog
+    AlertDialog alert = AlertDialog(
+      title: const Text("Удаление"),
+      content: const Text("Вы действительно хотите удалить запись из избранного?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
     );
   }
 
@@ -208,7 +259,7 @@ class FavArticlesListWidget extends StatelessWidget {
               ),
               IconButton(
                 onPressed: (){
-                  //TODO
+                  viewModel.onTapDeleteArticle(index);
                 },
                 icon: const Icon(Icons.cancel),
                 iconSize: 38,
