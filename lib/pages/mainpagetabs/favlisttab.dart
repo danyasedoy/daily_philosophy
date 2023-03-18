@@ -20,14 +20,14 @@ class _ArticleEntity {
   _ArticleEntity(this._articleId, this._articleTitle, this._articleContent, this._isLiked);
 }
 
-class _ArticleListEntity {
+/*class _ArticleListEntity {
   final List<_ArticleEntity> _articlesList;
 
   List get articlesList => _articlesList;
   int get count => articlesList.length;
 
   _ArticleListEntity(this._articlesList);
-}
+}*/
 
 class _FavoriteListStorageProvider{
   final _secureStorage = const FlutterSecureStorage();
@@ -78,7 +78,7 @@ class _FavoriteListState {
   _FavoriteListState(this._favArticles);
 
   _FavoriteListState copyWith(
-      List<_ArticleEntity> favArticles
+      List<_ArticleEntity>? favArticles
       )
   {
     return _FavoriteListState(
@@ -90,8 +90,9 @@ class _FavoriteListState {
 class _FavoriteListViewModel extends ChangeNotifier{
   var state = _FavoriteListState(null);
   var service = _FavoriteListService();
+  final context;
 
-  _FavoriteListViewModel() {
+  _FavoriteListViewModel(this.context) {
     getFavArticlesList();
   }
 
@@ -103,7 +104,10 @@ class _FavoriteListViewModel extends ChangeNotifier{
 
   onTapArticle(int index) {
     var article = state.favArticles![index];
-
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => _FavoriteArticleWidget(article: article)),
+    );
   }
 
 }
@@ -119,7 +123,7 @@ class _FavoriteListTabWidgetState extends State<FavoriteListTabWidget> {
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
-      create: (_) => _FavoriteListViewModel(),
+      create: (_) => _FavoriteListViewModel(context),
       child: Container(
         alignment: Alignment.center,
         width: 100,
@@ -182,19 +186,145 @@ class FavArticlesListWidget extends StatelessWidget {
           color: Colors.orangeAccent,
           padding: const EdgeInsets.all(20),
           margin: const EdgeInsets.symmetric(horizontal: 20),
-          child: InkWell(
-            onTap: (){ viewModel.onTapArticle(index); },
-            child: Text(
-                articlesList[index].articleTitle,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontFamily: 'MontserratAlternates',
-                  overflow: TextOverflow.clip
-                )
-            ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Flexible(
+                child: InkWell(
+                  onTap: (){ viewModel.onTapArticle(index); },
+                  child: Padding(
+                    padding: const EdgeInsets.all(12.0),
+                    child: Text(
+                        articlesList[index].articleTitle,
+                        style: const TextStyle(
+                            fontSize: 20,
+                            fontFamily: 'MontserratAlternates',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ),
+              ),
+              IconButton(
+                onPressed: (){
+                  //TODO
+                },
+                icon: const Icon(Icons.cancel),
+                iconSize: 38,
+              ),
+            ]
           ),
         );
       },
+    );
+  }
+}
+
+
+class _FavoriteArticleWidget extends StatelessWidget {
+  const _FavoriteArticleWidget({Key? key, required this.article}) : super(key: key);
+
+  final _ArticleEntity article;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+          alignment: Alignment.center,
+          width: 100,
+          constraints: const BoxConstraints.tightFor(width: 410),
+          child: ListView(
+              physics: const BouncingScrollPhysics(),
+              children:  [
+                const SizedBox(
+                  height: 20,
+                ),
+                const SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      'Избранное',
+                      style: TextStyle(
+                          fontSize: 36,
+                          fontFamily: 'MontserratAlternates'
+                      ),
+                    ),
+                  ),
+                ),
+                const Divider(
+                  color: Colors.yellow,
+                  thickness: 5,
+                  indent: 30,
+                  endIndent: 30,
+                ),
+                const SizedBox(height: 50,),
+                const DecoratedBox(
+                  decoration: BoxDecoration(
+                    image: DecorationImage(
+                        image: AssetImage('assets/images/philo.png'),
+                        fit: BoxFit.contain
+                    ),
+                  ),
+                  child: SizedBox(
+                    width: 200,
+                    height: 200,
+                  ),
+                ),
+                const SizedBox(height: 30,),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 30.0),
+                  child: Center(
+                    child: Text(
+                      article.articleTitle,
+                      style: const TextStyle(
+                          fontSize: 30,
+                          fontFamily: 'MontserratAlternates',
+                          fontWeight: FontWeight.bold,
+                          backgroundColor: Colors.yellowAccent,
+                          color: Colors.black
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30,),
+                SizedBox(
+                  width: double.infinity,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 30),
+                    child: Text(
+                      article.articleContent,
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'MontserratAlternates',
+                      ),
+                      textAlign: TextAlign.justify,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 30,),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 50),
+                  child: MaterialButton(
+                    color: Colors.orangeAccent,
+                    minWidth: 100,
+                    onPressed: (){Navigator.pop(context);},
+                    child: const Text(
+                      'Назад',
+                      style: TextStyle(
+                        fontSize: 20,
+                        fontFamily: 'MontserratAlternates',
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ),
+              ]
+          )
+      ),
     );
   }
 }

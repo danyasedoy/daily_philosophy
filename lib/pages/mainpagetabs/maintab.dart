@@ -305,15 +305,20 @@ class _MainTabArticleTitleWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     String title = context.select((_MainTabViewModel viewModel) => viewModel.state.articleTitle);
 
-    return  Center(
-      child: Text(
-        title,
-        style: const TextStyle(
-            fontSize: 30,
-            fontFamily: 'MontserratAlternates',
-            fontWeight: FontWeight.bold,
-            backgroundColor: Colors.yellowAccent,
-            color: Colors.black
+    return  Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 30),
+      child: Center(
+        child: Text(
+          title,
+          style: const TextStyle(
+              fontSize: 30,
+              fontFamily: 'MontserratAlternates',
+              fontWeight: FontWeight.bold,
+              backgroundColor: Colors.yellowAccent,
+              color: Colors.black,
+
+          ),
+          textAlign: TextAlign.center,
         ),
       ),
     );
