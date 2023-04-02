@@ -78,7 +78,7 @@ class _MainTabService {
       String articleId = articleResponse['id'].toString();
       String articleTitle = articleResponse['name'];
       String articleContent = articleResponse['content'];
-      bool isLiked = responseDecode['isLiked'].toString().toLowerCase() == 'true';
+      bool isLiked = responseDecode['liked'].toString().toLowerCase() == 'true';
 
       if (articleTitle.isNotEmpty && articleContent.isNotEmpty) {
         return _ArticleEntity(articleTitle, articleContent, isLiked, articleId);

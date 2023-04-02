@@ -48,7 +48,7 @@ class _AuthApiProvider {
     );
 
     if (response.statusCode != 200) {
-      return null;
+      throw response.body;
     } else {
       return response.body;
     }
@@ -86,7 +86,7 @@ class _AuthService {
 
   Future<_AuthEntity?> auth(String login, String password) async{
     String? apiResponse = await _apiProvider.auth(login, password);
-    if (apiResponse == null) {
+    if (apiResponse == null || apiResponse.isEmpty) {
       throw 'Некорректные данные';
     }
     final entity = _AuthEntity(apiResponse);

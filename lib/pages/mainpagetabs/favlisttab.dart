@@ -20,15 +20,6 @@ class _ArticleEntity {
   _ArticleEntity(this._articleId, this._articleTitle, this._articleContent, this._isLiked);
 }
 
-/*class _ArticleListEntity {
-  final List<_ArticleEntity> _articlesList;
-
-  List get articlesList => _articlesList;
-  int get count => articlesList.length;
-
-  _ArticleListEntity(this._articlesList);
-}*/
-
 class _FavoriteListStorageProvider{
   final _secureStorage = const FlutterSecureStorage();
 
