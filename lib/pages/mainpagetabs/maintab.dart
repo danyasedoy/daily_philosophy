@@ -136,7 +136,7 @@ class _MainTabState {
 }
 
 class _MainTabViewModel extends ChangeNotifier{
-  var state = _MainTabState('_articleTitle', '_articleContent', false);
+  var state = _MainTabState('Загрузка...', 'Загрузка...', false);
   var service = _MainTabService();
 
   _MainTabViewModel(){
