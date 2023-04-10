@@ -116,6 +116,9 @@ class _RegistrationPageState {
   bool get isRegButtonEnable => login.isNotEmpty && password.length >= 8 ? true : false;
 
   String errorMessage = '';
+  String notificationMessage='Ошибка при регистрации';
+
+  String get notMessage => notificationMessage;
 
   _RegistrationPageState(this._login, this._password);
 
@@ -148,20 +151,21 @@ class _RegistrationPageViewModel extends ChangeNotifier{
     notifyListeners();
   }
 
-  void onRegButtonPressed() async{
+  Future<bool> onRegButtonPressed() async{
     try {
       var entity = await authService.register(state.login, state.password);
       if (entity == null) {
         state.errorMessage = 'Неизвестная ошибка';
         notifyListeners();
-        return;
+        return false;
       }
-      state.errorMessage = 'Необходима авторизация';
       notifyListeners();
+      return true;
     }
     catch (errorMessage) {
       state.errorMessage = errorMessage.toString();
       notifyListeners();
+      return false;
     }
   }
 
@@ -318,8 +322,8 @@ class _LoginTextFieldWidget extends StatelessWidget {
           ),
           textInputAction: TextInputAction.next,
           decoration:  InputDecoration(
+            counterText: "",
             errorText: errorText.isEmpty ? null : errorText,
-            counterText: '',
             labelText: 'Логин',
             labelStyle: const TextStyle(
               color: Colors.white,
@@ -368,7 +372,7 @@ class _PasswordTextFieldWidget extends StatelessWidget {
           obscureText: true,
           textInputAction: TextInputAction.done,
           decoration:  const InputDecoration(
-            counterText: "",
+            counterText: "Минимум 8 символов",
             labelText: 'Пароль',
             labelStyle: TextStyle(
               color: Colors.white,
@@ -400,7 +404,20 @@ class _RegistrationButton extends StatelessWidget {
       child: Container(
         constraints: const BoxConstraints.tightFor(width: 300, height: 50),
         child: ElevatedButton(
-          onPressed: isEnable ? viewModel.onRegButtonPressed : null,
+          onPressed: isEnable ? () async{
+            if (await viewModel.onRegButtonPressed()) {
+              final snackBar = SnackBar(
+                content: const Text('Успех! Необходима авторизация.'),
+                action: SnackBarAction(
+                  label: 'Закрыть',
+                  onPressed: () {
+                    // Some code to undo the change.
+                  },
+                ),
+              );
+              ScaffoldMessenger.of(context).showSnackBar(snackBar);
+            }
+          } : null,
           style: ElevatedButton.styleFrom(
             backgroundColor: Colors.yellow,
           ),
