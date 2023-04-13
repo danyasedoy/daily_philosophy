@@ -11,13 +11,15 @@ class _ArticleEntity{
   final String _articleTitle;
   final String _articleContent;
   final bool _isLiked;
+  final String _imageUrl;
 
   String get articleId => _articleId;
   String get articleTitle => _articleTitle;
   String get articleContent => _articleContent;
   bool get isLiked => _isLiked;
+  String get imageUrl => _imageUrl;
 
-  _ArticleEntity(this._articleTitle, this._articleContent, this._isLiked, this._articleId);
+  _ArticleEntity(this._articleTitle, this._articleContent, this._isLiked, this._articleId, this._imageUrl);
 }
 
 class _MainTabStorageProvider{
@@ -79,9 +81,10 @@ class _MainTabService {
       String articleTitle = articleResponse['name'];
       String articleContent = articleResponse['content'];
       bool isLiked = responseDecode['liked'].toString().toLowerCase() == 'true';
+      String imageUrl = articleResponse['image_path'];
 
       if (articleTitle.isNotEmpty && articleContent.isNotEmpty) {
-        return _ArticleEntity(articleTitle, articleContent, isLiked, articleId);
+        return _ArticleEntity(articleTitle, articleContent, isLiked, articleId, imageUrl);
       }
     }
     return null;
@@ -118,25 +121,30 @@ class _MainTabState {
   final bool _isLiked;
   bool get isLiked => _isLiked;
 
-  _MainTabState(this._articleTitle, this._articleContent, this._isLiked);
+  final String _imageUrl;
+  String get imageUrl => _imageUrl;
+
+  _MainTabState(this._articleTitle, this._articleContent, this._isLiked, this._imageUrl);
 
   _MainTabState copyWith(
       String? articleTitle,
       String? articleContent,
-      bool? isAddButtonEnable
+      bool? isAddButtonEnable,
+      String? imageUrl
       )
   {
     return _MainTabState(
         articleTitle ?? _articleTitle,
         articleContent ?? _articleContent,
-        isAddButtonEnable ?? _isLiked
+        isAddButtonEnable ?? _isLiked,
+        imageUrl ?? _imageUrl
     );
   }
 
 }
 
 class _MainTabViewModel extends ChangeNotifier{
-  var state = _MainTabState('Загрузка...', 'Загрузка...', false);
+  var state = _MainTabState('Загрузка...', 'Загрузка...', false, '');
   var service = _MainTabService();
 
   _MainTabViewModel(){
@@ -146,25 +154,25 @@ class _MainTabViewModel extends ChangeNotifier{
   setArticle() async{
     var articleEntity = await service.loadArticle();
     if (articleEntity == null) {
-      state = state.copyWith('Произошла ошибка загрузки', 'Нам очень жаль :( ', false);
+      state = state.copyWith('Произошла ошибка загрузки', 'Нам очень жаль :( ', false, null);
       notifyListeners();
       return;
     }
-    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked);
+    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked, articleEntity.imageUrl);
     notifyListeners();
   }
 
   onAddToFavoriteButtonPressed() async{
     var articleEntity = await service.likeArticle();
     if (articleEntity == null) return;
-    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked);
+    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked, null);
     notifyListeners();
   }
 
   onDeleteFromFavoriteButtonPressed() async{
     var articleEntity = await service.deleteArticleFromFav();
     if (articleEntity == null) return;
-    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked);
+    state = state.copyWith(articleEntity.articleTitle, articleEntity.articleContent, articleEntity.isLiked, null);
     notifyListeners();
   }
 
@@ -215,18 +223,7 @@ class _MainTabWidgetState extends State<MainTabWidget> {
               endIndent: 30,
             ),
             SizedBox(height: 50,),
-            DecoratedBox(
-              decoration: BoxDecoration(
-                image: DecorationImage(
-                    image: AssetImage('assets/images/philo.png'),
-                    fit: BoxFit.contain
-                ),
-              ),
-              child: SizedBox(
-                width: 200,
-                height: 200,
-              ),
-            ),
+            MainTabImageWidget(),
             SizedBox(height: 30,),
             _MainTabArticleTitleWidget(),
             SizedBox(height: 30,),
@@ -235,6 +232,32 @@ class _MainTabWidgetState extends State<MainTabWidget> {
             _MainTabAddToFavButtonWidget(),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MainTabImageWidget extends StatelessWidget {
+  const MainTabImageWidget({
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    String? imageUrl = context.select((_MainTabViewModel viewModel) => viewModel.state.imageUrl);
+
+    imageUrl ??= '';
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        image: DecorationImage(
+            image: NetworkImage('http://${Settings.ipAddress}$imageUrl'),
+            fit: BoxFit.contain
+        ),
+      ),
+      child: const SizedBox(
+        width: 200,
+        height: 200,
       ),
     );
   }

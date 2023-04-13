@@ -11,13 +11,15 @@ class _ArticleEntity {
   final String _articleTitle;
   final String _articleContent;
   final bool _isLiked;
+  final String _imageUrl;
 
   String get articleId => _articleId;
   String get articleTitle => _articleTitle;
   String get articleContent => _articleContent;
   bool get isLiked => _isLiked;
+  String get imageUrl => _imageUrl;
 
-  _ArticleEntity(this._articleId, this._articleTitle, this._articleContent, this._isLiked);
+  _ArticleEntity(this._articleId, this._articleTitle, this._articleContent, this._isLiked, this._imageUrl);
 }
 
 class _FavoriteListStorageProvider{
@@ -65,7 +67,7 @@ class _FavoriteListService{
     List<dynamic> responseDecode = jsonDecode(utf8.decode(response.codeUnits));
     List<_ArticleEntity> articlesList = <_ArticleEntity>[];
     for (var article in responseDecode) {
-      articlesList.add(_ArticleEntity(article['id'].toString(), article['name'], article['content'], true));
+      articlesList.add(_ArticleEntity(article['id'].toString(), article['name'], article['content'], true, article['image_path']));
     }
     return articlesList;
   }
@@ -302,14 +304,14 @@ class _FavoriteArticleWidget extends StatelessWidget {
                   endIndent: 30,
                 ),
                 const SizedBox(height: 50,),
-                const DecoratedBox(
+                DecoratedBox(
                   decoration: BoxDecoration(
                     image: DecorationImage(
-                        image: AssetImage('assets/images/philo.png'),
+                        image: NetworkImage('http://${Settings.ipAddress}${article.imageUrl}'),
                         fit: BoxFit.contain
                     ),
                   ),
-                  child: SizedBox(
+                  child: const SizedBox(
                     width: 200,
                     height: 200,
                   ),
